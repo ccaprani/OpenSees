@@ -106,6 +106,7 @@ target_sources(OPS_Material
       EPPGapMaterial.cpp
       ElasticBDMaterial.cpp
       ElasticMaterialThermal.cpp
+      FRCC.cpp
       FRPConfinedConcrete.cpp
       FRPConfinedConcrete02.cpp
       FatigueMaterial.cpp
@@ -172,6 +173,7 @@ target_sources(OPS_Material
       WrapperUniaxialMaterial.cpp
       pyUCLA.cpp
       SMAMaterial.cpp
+      CoulombDamperMaterial.cpp
       
       TriMatrix.cpp
       DuctileFracture.cpp
@@ -214,6 +216,7 @@ target_sources(OPS_Material
       EPPGapMaterial.h
       ElasticBDMaterial.h
       ElasticMaterialThermal.h
+      FRCC.h
       FRPConfinedConcrete.h
       FRPConfinedConcrete02.h
       FatigueMaterial.h
@@ -278,6 +281,7 @@ target_sources(OPS_Material
       ViscousMaterial.h
       WrapperUniaxialMaterial.h
       pyUCLA.h
+      CoulombDamperMaterial.h
 
       TriMatrix.h  # move to SRC/matrix ?
       DuctileFracture.h

@@ -114,6 +114,7 @@ void* OPS_FRPConfinedConcrete();
 void* OPS_ConcreteCM();
 void* OPS_Cast();
 void* OPS_ViscousDamper();
+void* OPS_DamperMaterial();
 void* OPS_BilinearOilDamper();
 void* OPS_Bilin();
 void* OPS_Bilin02();
@@ -181,8 +182,8 @@ void* OPS_ConcreteSakaiKawashima();
 void* OPS_Concrete02Thermal();
 void* OPS_ResilienceLow();
 void* OPS_ResilienceMaterialHR();
-void* OPS_Elastic2();
-void* OPS_Backbone();
+void* OPS_Elastic2Material();
+void* OPS_BackboneMaterial();
 void* OPS_ConcreteZ01Material();
 void* OPS_ConcreteL01Material();
 void* OPS_SteelZ01Material();
@@ -194,11 +195,13 @@ void* OPS_SmoothPSConcrete();
 void* OPS_UniaxialJ2Plasticity();
 void* OPS_OOHystereticMaterial();
 void* OPS_UVCuniaxial();
+void* OPS_GNGMaterial();
 void* OPS_IMKBilin();
 void* OPS_IMKPinching();
 void* OPS_IMKPeakOriented();
 void* OPS_SLModel();
 void* OPS_SMAMaterial();
+void* OPS_FRCC();
 
 void* OPS_ArctangentBackbone();
 void* OPS_BilinearBackbone();
@@ -242,6 +245,8 @@ void* OPS_TDConcreteEXP(void);
 void* OPS_TDConcrete(void);
 void* OPS_TDConcreteMC10(void);
 void* OPS_TDConcreteMC10NL(void);
+
+void* OPS_CoulombDamperMaterial();
 
 namespace {
 
@@ -332,6 +337,10 @@ static int setUpUniaxialMaterials(void) {
       std::make_pair("CastFuse", &OPS_Cast));
   uniaxialMaterialsMap.insert(
       std::make_pair("ViscousDamper", &OPS_ViscousDamper));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("Damper", &OPS_DamperMaterial));	
+  uniaxialMaterialsMap.insert(
+      std::make_pair("DamperMaterial", &OPS_DamperMaterial));	
   uniaxialMaterialsMap.insert(std::make_pair(
       "BilinearOilDamper", &OPS_BilinearOilDamper));
   uniaxialMaterialsMap.insert(
@@ -485,9 +494,9 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(std::make_pair(
       "ResilienceMaterialHR", &OPS_ResilienceMaterialHR));
   uniaxialMaterialsMap.insert(
-      std::make_pair("Elastic2", &OPS_Elastic2));
+      std::make_pair("Elastic2", &OPS_Elastic2Material));
   uniaxialMaterialsMap.insert(
-      std::make_pair("Backbone", &OPS_Backbone));
+      std::make_pair("Backbone", &OPS_BackboneMaterial));
   uniaxialMaterialsMap.insert(std::make_pair(
       "ConcreteZ01Material", &OPS_ConcreteZ01Material));
   uniaxialMaterialsMap.insert(
@@ -519,6 +528,8 @@ static int setUpUniaxialMaterials(void) {
   uniaxialMaterialsMap.insert(
       std::make_pair("UVCuniaxial", &OPS_UVCuniaxial));
   uniaxialMaterialsMap.insert(
+      std::make_pair("GNG", &OPS_GNGMaterial));
+  uniaxialMaterialsMap.insert(			      
       std::make_pair("SteelFractureDI", &OPS_SteelFractureDI));
   uniaxialMaterialsMap.insert(
       std::make_pair("IMKBilin", &OPS_IMKBilin));
@@ -530,6 +541,8 @@ static int setUpUniaxialMaterials(void) {
       std::make_pair("SLModel", &OPS_SLModel));
   uniaxialMaterialsMap.insert(
       std::make_pair("SMA", &OPS_SMAMaterial));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("FRCC", &OPS_FRCC));  
   uniaxialMaterialsMap.insert(std::make_pair(
       "HystereticPoly",
       &OPS_HystereticPoly));  // Salvatore Sessa 14-Jan-2021 Mail: salvatore.sessa2@unina.it
@@ -548,6 +561,8 @@ static int setUpUniaxialMaterials(void) {
       std::make_pair("TDConcreteMC10", &OPS_TDConcreteMC10));
   uniaxialMaterialsMap.insert(
       std::make_pair("TDConcreteMC10NL", &OPS_TDConcreteMC10NL));
+  uniaxialMaterialsMap.insert(
+      std::make_pair("CoulombDamper", &OPS_CoulombDamperMaterial));
 
   return 0;
 }
@@ -701,7 +716,7 @@ int OPS_testUniaxialMaterial() {
 }
 
 int OPS_setStrain() {
-  if (OPS_GetNumRemainingInputArgs() != 1) {
+  if (OPS_GetNumRemainingInputArgs() < 1) {
     opserr << "testUniaxialMaterial - You must provide a strain "
               "value.\n";
     return -1;
@@ -722,7 +737,15 @@ int OPS_setStrain() {
     return -1;
   }
 
-  material->setTrialStrain(strain);
+  double strainRate = 0.0;
+  if (OPS_GetNumRemainingInputArgs() > 0) {
+      if (OPS_GetDoubleInput(&numData, &strainRate) < 0) {
+          opserr << "invalid strain rate\n";
+          return -1;
+      }
+  }
+
+  material->setTrialStrain(strain, strainRate);
   material->commitState();
 
   return 0;
